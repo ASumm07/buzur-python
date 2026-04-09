@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "buzur"
+version = "0.1.0"
+description = "AI prompt injection defense scanner — Python port of buzur (JS)"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "ASumm07" }
+]
+keywords = [
+  "ai", "security", "prompt-injection", "llm", "agent", "defense", "scanner"
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/ASumm07/buzur-python"
+Repository = "https://github.com/ASumm07/buzur-python"
+"Bug Tracker" = "https://github.com/ASumm07/buzur-python/issues"
+"JS Version" = "https://github.com/ASumm07/buzur"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["buzur*"]
