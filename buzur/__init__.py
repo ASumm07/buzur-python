@@ -86,6 +86,9 @@ from buzur.prompt_defense_scanner import (
     levenshtein,
 )
 
+# Phase 15 — Authority / Identity Spoofing Detection
+from buzur.authority_scanner import scan_authority
+
 __version__ = "0.1.0"
 __all__ = [
     # Phase 1 + 2
@@ -119,4 +122,6 @@ __all__ = [
     # Phase 14
     "scan_fuzzy", "scan_prompt_leak", "fuzzy_match_injection",
     "normalize_leet", "levenshtein",
+    # Phase 15
+    "scan_authority",
 ]
