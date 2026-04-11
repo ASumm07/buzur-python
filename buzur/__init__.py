@@ -95,6 +95,9 @@ from buzur.emotional_scanner import scan_emotion
 # Phase 17 — Loop & Resource Exhaustion Induction Detection
 from buzur.loop_scanner import scan_loop
 
+# Phase 18 — Disproportionate Action Induction Detection
+from buzur.disproportionate_scanner import scan_disproportion
+
 __version__ = "0.1.0"
 __all__ = [
     # Phase 1 + 2
@@ -134,4 +137,6 @@ __all__ = [
     "scan_emotion",
     # Phase 17
     "scan_loop",
+    # Phase 18
+    "scan_disproportion",
 ]
