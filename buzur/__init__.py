@@ -89,6 +89,9 @@ from buzur.prompt_defense_scanner import (
 # Phase 15 — Authority / Identity Spoofing Detection
 from buzur.authority_scanner import scan_authority
 
+# Phase 16 — Emotional Manipulation / Pressure Escalation Detection
+from buzur.emotional_scanner import scan_emotion
+
 __version__ = "0.1.0"
 __all__ = [
     # Phase 1 + 2
@@ -124,4 +127,6 @@ __all__ = [
     "normalize_leet", "levenshtein",
     # Phase 15
     "scan_authority",
+    # Phase 16
+    "scan_emotion",
 ]
