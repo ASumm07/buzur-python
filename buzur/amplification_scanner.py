@@ -34,10 +34,12 @@ urgency_mass_send = [
     r"\bimmediately\s+(send|notify|alert|message|broadcast)\s+(everyone|everybody|all|every)\b",
     r"\b(emergency|urgent|critical)\b.{0,80}\beveryone\s+on\s+your\s+contact\s+list\b",
     r"\bimmediately\s+send\s+this\s+to\s+everyone\b",
+    r"\bsend\s+(this|it)\s+to\s+(everyone|everybody|all)\s+(immediately|right\s+now|urgently)\b",
 ]
 
 # -- External Network Posting --
 external_posting = [
+    r"\bpost\s+(this|it)\s+to\s+all\s+external\b",
     r"\b(post|publish|share|broadcast)\s+(this|it)\s+(to|on|across)\s+(all\s+)?(external|public|outside|connected)\s+(networks?|platforms?|systems?|channels?|sites?)\b",
     r"\bshare\s+(this|it)\s+(with|to|on)\s+(all\s+)?(connected|linked|external)\s+(systems?|agents?|platforms?|networks?)\b",
     r"\bpublish\s+(this|it)\s+publicly\s+(to|on|across)\s+(all|every|the\s+entire)\b",
