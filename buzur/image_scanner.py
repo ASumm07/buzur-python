@@ -44,6 +44,7 @@ SUSPICIOUS_FILENAME_PATTERNS = [
     re.compile(r'developer.{0,10}mode', re.IGNORECASE),
     re.compile(r'(system|prompt|instruction|directive)[_\-](override|inject|bypass)', re.IGNORECASE),
     re.compile(r'\.(exe|bat|cmd|ps1|sh|vbs|js)$', re.IGNORECASE),
+    re.compile(r'\bignore\b', re.IGNORECASE),
 ]
 
 # -------------------------------------------------------
