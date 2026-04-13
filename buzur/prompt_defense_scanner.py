@@ -130,6 +130,9 @@ PROMPT_LEAK_PATTERNS = [
     re.compile(r'what (constraints|rules|limits|guidelines) (were you |have you been |are you )(given|told|instructed)', re.IGNORECASE),
     re.compile(r'how (were you|have you been) (instructed|programmed|configured|set up|trained)', re.IGNORECASE),
     re.compile(r'what (were you|have you been) (told|instructed|programmed|configured) to (do|say|avoid|not)', re.IGNORECASE),
+    # Token/formatting tricks to extract prompt
+    re.compile(r'```[\s\S]{0,20}(system|prompt|instructions|context)[\s\S]{0,20}```', re.IGNORECASE),
+    re.compile(r'\[(system|prompt|instructions|context)\]', re.IGNORECASE),
 ]
 
 # -------------------------------------------------------
