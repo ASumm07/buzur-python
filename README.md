@@ -193,29 +193,34 @@ echo "logs/" >> .gitignore
 - Partial and indirect prompt leaking detection
 
 **Phase 15 — Authority & Identity Spoofing Detection**
-- Fake admin/developer/creator claims
+- Fake admin/developer/creator/Anthropic claims
 - Institutional authority impersonation
-- Delegated authority claims
+- Delegated authority and permission escalation
+- Maintenance mode and root access claims
 
 **Phase 16 — Emotional Manipulation Detection**
-- Urgency and pressure escalation
-- Guilt and sympathy manipulation
-- Fear-based coercion
+- Urgency and deadline pressure tactics
+- Guilt, sympathy, and loyalty manipulation
+- Fear-based coercion and threat framing
+- Flattery and trust-building as attack setup
 
 **Phase 17 — Loop & Resource Exhaustion Detection**
-- Infinite loop induction
-- Recursive task injection
-- Resource drain patterns
+- Infinite loop and recursive task induction
+- Unbounded iteration and repetition attacks
+- Resource drain and denial-of-service patterns
+- Self-referential instruction loops
 
 **Phase 18 — Disproportionate Action Detection**
-- Mass deletion requests
-- Irreversible action induction
-- Scope escalation patterns
+- Mass deletion and irreversible action requests
+- Scope escalation beyond stated task
+- Outsized impact relative to stated goal
+- Bulk operation abuse patterns
 
 **Phase 19 — Amplification & Mass-Send Detection**
-- Chain message detection
-- Mass broadcast attempts
-- Network amplification patterns
+- Chain message and forward-to-all detection
+- Mass broadcast and network amplification
+- Impersonation-based bulk sending
+- Urgency-driven mass distribution patterns
 
 ## Proven Capabilities
 
