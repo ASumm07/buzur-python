@@ -228,8 +228,6 @@ echo "logs/" >> .gitignore
 
 Verified by test suite — 188 tests, 0 failures across all nineteen phases.
 
-In February 2026, researchers from Harvard, MIT, Stanford, and CMU published *Agents of Chaos* (arXiv:2602.20021) — a live red-team study of 6 autonomous AI agents that found 10 vulnerabilities. Phases 15-19 were built directly in response to those findings.
-
 The JavaScript and Python implementations were cross-validated against each other — discrepancies caught and corrected in both. The result is two mutually verified implementations, not just a translation.
 
 ## Known Limitations
