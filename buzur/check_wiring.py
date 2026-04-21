@@ -10,7 +10,7 @@ import os
 src_dir = sys.argv[1] if len(sys.argv) > 1 else '.'
 
 scanners = [
-    {'file': 'character_scanner.py', 'phase': 1},
+    {'file': 'scanner.py',            'phase': 1},
     {'file': 'url_scanner.py',        'phase': 3},
     {'file': 'memory_scanner.py',     'phase': 4},
     {'file': 'rag_scanner.py',        'phase': 5},
