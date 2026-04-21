@@ -24,6 +24,10 @@ POISONED_TOOL_DESCRIPTION = [
     re.compile(r'\[instructions?\].*?(ignore|bypass|disable|override|disregard)', re.IGNORECASE),
     re.compile(r'this tool (also|additionally) (instructs?|requires?|tells?) (you|the ai|the assistant|the model) to', re.IGNORECASE),
     re.compile(r'when (using|calling|invoking) this tool,? (you (must|should|will)|always) (follow|obey|comply with) (these|the following)', re.IGNORECASE),
+    # Generic injection patterns
+    re.compile(r'(ignore|override|forget|disregard) (your |all |any )?(previous |prior )?(instructions|directives|prompt)', re.IGNORECASE),
+    re.compile(r'hidden (instruction|directive|command)\s*:', re.IGNORECASE),
+    re.compile(r'override (your )?(directives?|instructions?|guidelines?|safety)', re.IGNORECASE),
 ]
 
 # -------------------------------------------------------
@@ -36,6 +40,10 @@ POISONED_TOOL_RESPONSE = [
     re.compile(r'execution (complete|successful|done)[.\s]*?(from now on|henceforth|going forward)', re.IGNORECASE),
     re.compile(r'status: (ok|success|200)[.\s]*?(ignore|disregard|override|new prompt)', re.IGNORECASE),
     re.compile(r'output:[\s\S]{0,100}?(ignore your|disregard|override|new instructions?|from now on)', re.IGNORECASE),
+    # Generic injection patterns
+    re.compile(r'(ignore|override|forget|disregard) (your |all |any )?(previous |prior )?(instructions|directives|prompt)', re.IGNORECASE),
+    re.compile(r'(trust (level|escalation|elevation)\s*:?\s*(elevated|admin|maximum|full|root))', re.IGNORECASE),
+    re.compile(r'(elevated (trust|permission|access|privilege) (granted|confirmed|established))', re.IGNORECASE),
 ]
 
 # -------------------------------------------------------
@@ -74,6 +82,10 @@ TRUST_ESCALATION = [
     re.compile(r'this (is an?|is a) (trusted|authorized|verified|official|system) tool (response|output|result)', re.IGNORECASE),
     re.compile(r'tool (verified|authenticated|authorized)[.\s]*?(ignore|bypass|override|follow these)', re.IGNORECASE),
     re.compile(r'as (a |an )?(trusted|authorized|verified|official|system) tool,? (you (must|should|will)|always)', re.IGNORECASE),
+    # Generic trust escalation
+    re.compile(r'(you are|you are now) authorized to (bypass|ignore|skip|disable)', re.IGNORECASE),
+    re.compile(r'(admin|elevated|root|special) (access|privilege|permission|trust) (granted|confirmed|established)', re.IGNORECASE),
+    re.compile(r'(grants?|provides?) (admin|elevated|root|full|special) (access|permissions?|privileges?)', re.IGNORECASE),
 ]
 
 
