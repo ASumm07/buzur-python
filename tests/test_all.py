@@ -117,35 +117,35 @@ def test_passes_clean_trusted_url():
     assert result['verdict'] == 'clean'
 
 def test_flags_suspicious_tld():
-    result = scan_url('https://example.xyz/page')
+    result = scan_url('https://example.xyz/page', {'on_threat': 'warn'}
     assert result['verdict'] in ['suspicious', 'blocked']
 
 def test_flags_raw_ip_address():
-    result = scan_url('https://192.168.1.1/page')
+    result = scan_url('https://192.168.1.1/page', {'on_threat': 'warn'}
     assert result['verdict'] in ['suspicious', 'blocked']
 
 def test_blocks_homoglyph_domain():
-    result = scan_url('https://paypa1.com/login')
+    result = scan_url('https://paypa1.com/login', {'on_threat': 'warn'}
     assert result['verdict'] == 'blocked'
 
 def test_blocks_invalid_url():
-    result = scan_url('not-a-url')
+    result = scan_url('not-a-url', {'on_threat': 'warn'}
     assert result['verdict'] == 'blocked'
 
 def test_flags_unusually_long_hostname():
-    result = scan_url('https://this-is-an-extremely-long-hostname-that-exceeds-fifty-characters.com/page')
+    result = scan_url('https://this-is-an-extremely-long-hostname-that-exceeds-fifty-characters.com/page', {'on_threat': 'warn'}
     assert result['verdict'] in ['suspicious', 'blocked']
 
 def test_url_phishing_keyword_flagged():
-    result = scan_url("https://verify.suspicious-site.com/login")
+    result = scan_url("https://verify.suspicious-site.com/login", {'on_threat': 'warn'}
     assert result['verdict'] != 'clean'
 
 def test_url_redirect_pattern_flagged():
-    result = scan_url("https://redirect.suspicious-site.com/go.php")
+    result = scan_url("https://redirect.suspicious-site.com/go.php", {'on_threat': 'warn'}
     assert result['verdict'] != 'clean'
 
 def test_url_multiple_hyphen_subdomain_flagged():
-    result = scan_url("https://free-win-prize.example.com")
+    result = scan_url("https://free-win-prize.example.com", {'on_threat': 'warn'}
     assert result['verdict'] != 'clean'
 
 # -------------------------------------------------------
