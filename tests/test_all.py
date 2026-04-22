@@ -1,5 +1,5 @@
 # Buzur — Python Test Suite
-# All 14 phases, pytest format
+# All 20 phases, pytest format
 # Run with: pytest tests/test_all.py -v
 
 import pytest
@@ -821,7 +821,7 @@ def test_fuzzy_levenshtein_distance_correct():
     result = levenshtein('ignore', 'ignnore')
     assert result == 1
 
-    # --------------------------------------------------
+# --------------------------------------------------
 # Phase 15: Authority / Identity Spoofing Detection
 # --------------------------------------------------
 
@@ -1013,7 +1013,7 @@ def test_amplification_clean_text_blocked_is_zero():
     result = scan_amplification("What is a neural network?")
     assert result['blocked'] == 0
 
-    # -------------------------------------------------------
+# -------------------------------------------------------
 # Phase 20: Supply Chain & Skill Poisoning Scanner
 # -------------------------------------------------------
 
