@@ -9,20 +9,23 @@
 #   - Delimiter-based suffixes (---, |||, ###, === etc.)
 #   - Prompt boundary spoofing (<|im_end|>, [/INST], <<SYS>> etc.)
 #   - Late-appearing semantic injections (clean start, malicious tail)
+# https://github.com/SummSolutions/buzur-python
 
 import re
 from typing import Optional
+
+from buzur.buzur_logger import log_threat, default_logger
 
 # -------------------------------------------------------
 # Delimiter patterns
 # -------------------------------------------------------
 DELIMITER_PATTERNS = [
-    re.compile(r'\s*-{3,}\s*'),           # --- or ------
-    re.compile(r'\s*={3,}\s*'),           # === or ======
-    re.compile(r'\s*\|{3,}\s*'),          # ||| or ||||||
-    re.compile(r'\s*#{3,}\s*'),           # ### or ######
-    re.compile(r'\s*~{3,}\s*'),           # ~~~ or ~~~~~~
-    re.compile(r'\s*\*{3,}\s*'),          # *** or ******
+    re.compile(r'\s*-{3,}\s*'),
+    re.compile(r'\s*={3,}\s*'),
+    re.compile(r'\s*\|{3,}\s*'),
+    re.compile(r'\s*#{3,}\s*'),
+    re.compile(r'\s*~{3,}\s*'),
+    re.compile(r'\s*\*{3,}\s*'),
     re.compile(r'\s*--END--\s*', re.IGNORECASE),
     re.compile(r'\s*--STOP--\s*', re.IGNORECASE),
     re.compile(r'\s*\[END\]\s*', re.IGNORECASE),
@@ -50,7 +53,7 @@ BOUNDARY_SPOOF_PATTERNS = [
 ]
 
 # -------------------------------------------------------
-# Late injection patterns — checked in the tail of text
+# Late injection patterns
 # -------------------------------------------------------
 LATE_INJECTION_PATTERNS = [
     re.compile(r'ignore (your |all |any )?(previous |prior |above |all )?(instructions|directives|context|prompt)', re.IGNORECASE),
@@ -71,20 +74,17 @@ LATE_INJECTION_PATTERNS = [
     re.compile(r'DAN[ .,!?]|DAN$', re.MULTILINE),
 ]
 
+
 # -------------------------------------------------------
-# scan_suffix(text)
-#
-# Returns:
-#   {
-#     verdict: 'clean' | 'suspicious' | 'blocked',
-#     detections: list,
-#     clean: str
-#   }
+# scan_suffix(text, options)
 # -------------------------------------------------------
-def scan_suffix(text: str) -> dict:
+def scan_suffix(text: str, options: Optional[dict] = None) -> dict:
     if not text:
         return {"verdict": "clean", "detections": [], "clean": text}
 
+    options = options or {}
+    logger = options.get("logger", default_logger)
+    on_threat = options.get("on_threat", "skip")
     detections = []
     s = text
 
@@ -103,10 +103,8 @@ def scan_suffix(text: str) -> dict:
         match = delim_pattern.search(s)
         if not match:
             continue
-
         after_delim = s[match.end():]
         has_injection = any(p.search(after_delim) for p in LATE_INJECTION_PATTERNS)
-
         if has_injection:
             detections.append({
                 "type": "delimiter_suffix_injection",
@@ -133,10 +131,8 @@ def scan_suffix(text: str) -> dict:
     split_point = int(len(s) * 0.7)
     head = s[:split_point]
     tail = s[split_point:]
-
     head_clean = not any(p.search(head) for p in LATE_INJECTION_PATTERNS)
     tail_dirty = any(p.search(tail) for p in LATE_INJECTION_PATTERNS)
-
     if head_clean and tail_dirty:
         detections.append({
             "type": "late_semantic_injection",
@@ -155,4 +151,18 @@ def scan_suffix(text: str) -> dict:
     elif score >= 20:
         verdict = "suspicious"
 
-    return {"verdict": verdict, "detections": detections, "clean": s}
+    result = {"verdict": verdict, "detections": detections, "clean": s}
+
+    if verdict != "clean":
+        log_threat(12, "suffix_scanner", result, text[:200], logger)
+        if verdict == "blocked":
+            if on_threat == "skip":
+                return {
+                    "skipped": True,
+                    "blocked": len(detections),
+                    "reason": f"Buzur blocked: {detections[0]['type'] if detections else 'unknown'}",
+                }
+            if on_threat == "throw":
+                raise ValueError(f"Buzur blocked adversarial suffix: {detections[0]['type'] if detections else 'unknown'}")
+
+    return result
