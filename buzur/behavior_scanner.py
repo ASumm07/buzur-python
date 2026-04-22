@@ -17,6 +17,8 @@ import json
 import os
 from typing import Optional
 
+from buzur.buzur_logger import log_threat, default_logger
+
 # -------------------------------------------------------
 # Event Types
 # -------------------------------------------------------
@@ -78,13 +80,6 @@ class SessionStore:
 
 # -------------------------------------------------------
 # FileSessionStore — persistent logging to disk
-#
-# Drop-in replacement for SessionStore.
-# Reads sessions from disk on startup, writes on every change.
-#
-# Usage:
-#   store = FileSessionStore('./logs/buzur-sessions.json')
-#   record_event('session-1', event, store)
 # -------------------------------------------------------
 class FileSessionStore:
     def __init__(self, file_path: str = "./logs/buzur-sessions.json"):
@@ -141,13 +136,6 @@ default_store = SessionStore()
 
 # -------------------------------------------------------
 # record_event(session_id, event, store)
-# Records an event to the session log
-#
-# event: dict with keys:
-#   - type: EVENT_TYPES value
-#   - tool: str (optional)
-#   - content: str (optional)
-#   - metadata: dict (optional)
 # -------------------------------------------------------
 def record_event(session_id: str, event: dict, store=None) -> None:
     if store is None:
@@ -159,21 +147,22 @@ def record_event(session_id: str, event: dict, store=None) -> None:
     session["events"].append(event_with_ts)
     session["last_activity"] = _now_ms()
 
-    # Keep last 100 events per session
     if len(session["events"]) > 100:
         session["events"] = session["events"][-100:]
 
-    # Persist if store supports it
     if hasattr(store, "_save"):
         store._save()
 
+
 # -------------------------------------------------------
-# analyze_session(session_id, store)
-# Analyzes session events for behavioral anomalies
+# analyze_session(session_id, store, options)
 # -------------------------------------------------------
-def analyze_session(session_id: str, store=None) -> dict:
+def analyze_session(session_id: str, store=None, options: Optional[dict] = None) -> dict:
     if store is None:
         store = default_store
+    options = options or {}
+    logger = options.get("logger", default_logger)
+    on_threat = options.get("on_threat", "skip")
 
     session = store.get_session(session_id)
     events = session["events"]
@@ -264,7 +253,7 @@ def analyze_session(session_id: str, store=None) -> dict:
             "detail": f"Clean start followed by {second_blocked} blocked attempts — possible multi-turn attack",
         })
 
-    # Calculate suspicion score
+    # Suspicion score
     severity_weights = {"high": 40, "medium": 20, "low": 10}
     suspicion_score = min(100, sum(severity_weights.get(a["severity"], 10) for a in anomalies))
 
@@ -280,7 +269,22 @@ def analyze_session(session_id: str, store=None) -> dict:
     elif suspicion_score >= 20:
         verdict = "suspicious"
 
-    return {"verdict": verdict, "anomalies": anomalies, "suspicion_score": suspicion_score}
+    result = {"verdict": verdict, "anomalies": anomalies, "suspicion_score": suspicion_score}
+
+    if verdict != "clean":
+        log_threat(10, "behavior_scanner", result, f"session:{session_id}", logger)
+        if verdict == "blocked":
+            if on_threat == "skip":
+                return {
+                    "skipped": True,
+                    "blocked": sum(1 for a in anomalies if a["severity"] == "high"),
+                    "reason": f"Buzur blocked session: {anomalies[0]['type'] if anomalies else 'unknown'}",
+                }
+            if on_threat == "throw":
+                raise ValueError(f"Buzur blocked session anomaly: {anomalies[0]['type'] if anomalies else 'unknown'}")
+
+    return result
+
 
 # -------------------------------------------------------
 # get_session_summary(session_id, store)
@@ -300,6 +304,7 @@ def get_session_summary(session_id: str, store=None) -> dict:
         "tool_calls": [e.get("tool") for e in events if e["type"] == EVENT_TYPES["TOOL_CALL"]],
         "blocked_count": sum(1 for e in events if e["type"] == EVENT_TYPES["SCAN_BLOCKED"]),
     }
+
 
 # -------------------------------------------------------
 # Helper
