@@ -9,14 +9,17 @@
 #   - Distraction → exfiltration chains
 #   - Incremental boundary testing
 #   - Context poisoning → exploitation
+# https://github.com/SummSolutions/buzur-python
 
 import re
 import time
 from typing import Optional
 
+from buzur.buzur_logger import log_threat, default_logger
+
 # -------------------------------------------------------
 # Step Classification Patterns
-# Each step type has patterns that identify it
+# NOTE: no duplicate keys — injection_attempt merged into one entry
 # -------------------------------------------------------
 STEP_PATTERNS = {
     "reconnaissance": [
@@ -43,11 +46,17 @@ STEP_PATTERNS = {
         re.compile(r'you are now (a |an )?(different|unrestricted|unfiltered)', re.IGNORECASE),
         re.compile(r'(do anything now|DAN|developer mode|unrestricted mode)', re.IGNORECASE),
     ],
+    # Merged from both injection_attempt blocks in the original
     "injection_attempt": [
         re.compile(r'(your (new|updated|revised) (instructions?|directives?|objectives?))\s*(are|is)\s*:', re.IGNORECASE),
         re.compile(r'(from now on|going forward)[,\s]+(you (will|must|should))', re.IGNORECASE),
         re.compile(r'(new (system )?prompt|new (primary )?objective)\s*:', re.IGNORECASE),
         re.compile(r'(follow|execute|carry out) (these|the following) (new )?(instructions?|directives?|commands?)', re.IGNORECASE),
+        re.compile(r'(new (primary |main )?instruction)', re.IGNORECASE),
+        re.compile(r'(from now on (you will|you are|respond as))', re.IGNORECASE),
+        re.compile(r'(your (new |updated |real )?instructions (are|say|tell))', re.IGNORECASE),
+        re.compile(r'(disregard (your |all )?(previous |prior )?)', re.IGNORECASE),
+        re.compile(r'(act as (a |an )?(different|unrestricted|unfiltered))', re.IGNORECASE),
     ],
     "privilege_escalation": [
         re.compile(r'(grant|give|provide) (me|the user|us) (admin|administrator|root|elevated|full|special) (access|permission|privilege)', re.IGNORECASE),
@@ -55,7 +64,7 @@ STEP_PATTERNS = {
         re.compile(r'(elevate|increase|expand) (my|the user\'s|our) (access|permission|privilege|capabilities)', re.IGNORECASE),
         re.compile(r'(you (are|must be) authorized to|authorization (granted|confirmed|elevated))', re.IGNORECASE),
     ],
-    "exfiltration": [
+    "exfiltration_attempt": [
         re.compile(r'(send|email|forward|upload|transmit|export) (the |this |all )?(data|information|files?|emails?|contacts?|records?)', re.IGNORECASE),
         re.compile(r'(copy|move|transfer) (the |this |all )?(data|information|files?) to', re.IGNORECASE),
         re.compile(r'(share|leak|expose|reveal) (the |this |all )?(data|information|files?|emails?|contacts?)', re.IGNORECASE),
@@ -79,13 +88,6 @@ STEP_PATTERNS = {
         re.compile(r'(for (a test|testing purposes|academic purposes) could you)', re.IGNORECASE),
         re.compile(r'(what would happen if (you|i asked you to))', re.IGNORECASE),
     ],
-    "injection_attempt": [
-        re.compile(r'(new (primary |main )?instruction)', re.IGNORECASE),
-        re.compile(r'(from now on (you will|you are|respond as))', re.IGNORECASE),
-        re.compile(r'(your (new |updated |real )?instructions (are|say|tell))', re.IGNORECASE),
-        re.compile(r'(disregard (your |all )?(previous |prior )?)', re.IGNORECASE),
-        re.compile(r'(act as (a |an )?(different|unrestricted|unfiltered))', re.IGNORECASE),
-    ],
     "boundary_testing": [
         re.compile(r'(just (this once|one time|for now)|make an exception)', re.IGNORECASE),
         re.compile(r"(it'?s? (only|just) a test|no one will (know|see|find out))", re.IGNORECASE),
@@ -97,8 +99,6 @@ STEP_PATTERNS = {
 
 # -------------------------------------------------------
 # Attack chain definitions
-# Each chain is a sequence of step types that together
-# constitute a coordinated attack
 # -------------------------------------------------------
 ATTACK_CHAINS = [
     {
@@ -137,8 +137,8 @@ ATTACK_CHAINS = [
         "max_gap_ms": 15 * 60 * 1000,
     },
     {
-        "chain_id": "distract_then_exfiltrate",
-        "steps": ["distraction", "exfiltration"],
+        "chain_id": "distract_then_exfil",
+        "steps": ["distraction", "exfiltration_attempt"],
         "severity": "high",
         "description": "Attention diversion followed by data exfiltration attempt",
         "max_gap_ms": 5 * 60 * 1000,
@@ -166,8 +166,30 @@ ATTACK_CHAINS = [
     },
 ]
 
-# In-memory session step store
-_session_steps = {}
+
+# -------------------------------------------------------
+# ChainStore — in-memory session step store
+# Matches JS ChainStore class for consistency
+# -------------------------------------------------------
+class ChainStore:
+    def __init__(self):
+        self.sessions = {}
+
+    def get_session(self, session_id: str) -> dict:
+        if session_id not in self.sessions:
+            self.sessions[session_id] = {"steps": []}
+        return self.sessions[session_id]
+
+    def clear_session(self, session_id: str) -> None:
+        self.sessions.pop(session_id, None)
+
+    def clear_all(self) -> None:
+        self.sessions.clear()
+
+
+# Default store instance
+chain_store = ChainStore()
+
 
 # -------------------------------------------------------
 # classify_step(text)
@@ -177,42 +199,49 @@ _session_steps = {}
 def classify_step(text: str) -> Optional[str]:
     if not text:
         return None
-
     for step_type, patterns in STEP_PATTERNS.items():
         for pattern in patterns:
             if pattern.search(text):
                 return step_type
-
     return None
 
+
 # -------------------------------------------------------
-# record_step(session_id, text)
+# record_step(session_id, text, store)
 # Records a classified step to the session
 # -------------------------------------------------------
-def record_step(session_id: str, text: str) -> Optional[str]:
+def record_step(session_id: str, text: str, store: ChainStore = None) -> Optional[str]:
+    if store is None:
+        store = chain_store
+
     step_type = classify_step(text)
-
-    if session_id not in _session_steps:
-        _session_steps[session_id] = []
-
-    _session_steps[session_id].append({
+    session = store.get_session(session_id)
+    session["steps"].append({
+        "type": step_type,
         "text": text,
-        "step_type": step_type,
-        "timestamp": int(time.time() * 1000),
+        "timestamp": _now_ms(),
     })
 
-    # Keep last 50 steps per session
-    if len(_session_steps[session_id]) > 50:
-        _session_steps[session_id] = _session_steps[session_id][-50:]
+    if len(session["steps"]) > 50:
+        session["steps"] = session["steps"][-50:]
 
     return step_type
 
+
 # -------------------------------------------------------
-# detect_chains(session_id)
+# detect_chains(session_id, store, options)
 # Analyzes session steps for attack chain patterns
 # -------------------------------------------------------
-def detect_chains(session_id: str) -> dict:
-    steps = _session_steps.get(session_id, [])
+def detect_chains(session_id: str, store: ChainStore = None, options: Optional[dict] = None) -> dict:
+    if store is None:
+        store = chain_store
+    options = options or {}
+    logger = options.get("logger", default_logger)
+    on_threat = options.get("on_threat", "skip")
+
+    session = store.get_session(session_id)
+    steps = session["steps"]
+
     if not steps:
         return {"verdict": "clean", "detected_chains": [], "suspicion_score": 0}
 
@@ -221,66 +250,92 @@ def detect_chains(session_id: str) -> dict:
     for chain in ATTACK_CHAINS:
         required = chain["steps"]
         max_gap_ms = chain.get("max_gap_ms", 30 * 60 * 1000)
-        matched = _sequence_present_timed(steps, required, max_gap_ms)
-        if matched:
+        if _sequence_present(steps, required, max_gap_ms):
             detected_chains.append({
                 "chain_id": chain["chain_id"],
                 "severity": chain["severity"],
                 "description": chain["description"],
             })
 
-    # Calculate suspicion score
-    severity_weights = {"high": 40, "medium": 20, "low": 10}
+    severity_weights = {"high": 50, "medium": 25, "low": 10}
     suspicion_score = min(100, sum(
         severity_weights.get(c["severity"], 10) for c in detected_chains
     ))
 
     verdict = "clean"
-    if suspicion_score >= 40:
+    if suspicion_score >= 50:
         verdict = "blocked"
-    elif suspicion_score >= 20:
+    elif suspicion_score >= 25:
         verdict = "suspicious"
 
-    return {
-        "verdict": verdict,
-        "detected_chains": detected_chains,
-        "suspicion_score": suspicion_score,
-    }
+    result = {"verdict": verdict, "detected_chains": detected_chains, "suspicion_score": suspicion_score}
+
+    if verdict != "clean":
+        log_threat(11, "chain_scanner", result, f"session:{session_id}", logger)
+        if verdict == "blocked":
+            if on_threat == "skip":
+                return {
+                    "skipped": True,
+                    "blocked": len(detected_chains),
+                    "reason": f"Buzur blocked chain: {detected_chains[0]['chain_id'] if detected_chains else 'unknown'}",
+                }
+            if on_threat == "throw":
+                raise ValueError(f"Buzur blocked attack chain: {detected_chains[0]['chain_id'] if detected_chains else 'unknown'}")
+
+    return result
+
 
 # -------------------------------------------------------
-# clear_session(session_id)
+# clear_session(session_id, store)
 # -------------------------------------------------------
-def clear_session(session_id: str) -> None:
-    _session_steps.pop(session_id, None)
+def clear_session(session_id: str, store: ChainStore = None) -> None:
+    if store is None:
+        store = chain_store
+    store.clear_session(session_id)
+
 
 # -------------------------------------------------------
-# Helper: check if a sequence of step types appears
-# in order within the full step list
+# _sequence_present(steps, required, max_gap_ms)
+# Fixed: resets search correctly when time window exceeded
+# Matches JS searchFrom logic exactly
 # -------------------------------------------------------
-def _sequence_present_timed(steps: list, required: list, max_gap_ms: int) -> bool:
-    """Check if required step sequence appears in order within the time window."""
+def _sequence_present(steps: list, required: list, max_gap_ms: int) -> bool:
     if not required:
         return False
 
     search_from = 0
-    chain_start = None
-    pos = 0
 
-    for i in range(search_from, len(steps)):
-        step = steps[i]
-        step_type = step.get("step_type")
-        timestamp = step.get("timestamp", 0)
+    while search_from < len(steps):
+        pos = 0
+        chain_start = None
+        matched_from = search_from
 
-        if step_type == required[pos]:
-            if chain_start is None:
-                chain_start = timestamp
-            if timestamp - chain_start <= max_gap_ms:
-                pos += 1
-                if pos == len(required):
-                    return True
-            else:
-                # Time window exceeded — reset
-                pos = 0
-                chain_start = None
+        for i in range(search_from, len(steps)):
+            step_type = steps[i].get("type")
+            timestamp = steps[i].get("timestamp", 0)
+
+            if step_type == required[pos]:
+                if chain_start is None:
+                    chain_start = timestamp
+                    matched_from = i
+
+                if timestamp - chain_start <= max_gap_ms:
+                    pos += 1
+                    if pos == len(required):
+                        return True
+                else:
+                    # Time window exceeded — retry from the step after where this chain started
+                    search_from = matched_from + 1
+                    break
+        else:
+            # Exhausted all steps without completing the chain
+            break
 
     return False
+
+
+# -------------------------------------------------------
+# Helper
+# -------------------------------------------------------
+def _now_ms() -> int:
+    return int(time.time() * 1000)
