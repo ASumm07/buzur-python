@@ -16,6 +16,11 @@ Works seamlessly with Python agent frameworks: **LangGraph**, **CrewAI**, **Auto
 
 ---
 
+## Quick Start
+
+```bash
+pip install buzur
+
 ## The Problem
 
 AI agents that search the web are exposed to malicious content designed to hijack their behavior. A single poisoned search result can override an agent's instructions, change its persona, or exfiltrate data. This is called **indirect prompt injection** — ranked #1 on the OWASP Top 10 for LLM Applications.
@@ -24,101 +29,44 @@ AI agents that search the web are exposed to malicious content designed to hijac
 
 Scan before you enter. Not patch after the fact.
 
-## Installation
-
-```bash
-pip install buzur
 ```
 
-## Usage
+## Basic Usage
 
 ```python
-from buzur.scanner import scan, get_trust_tier, is_tier1_domain
+from buzur.scanner import scan, get_trust_tier
 from buzur.character_scanner import scan_json
 from buzur.url_scanner import scan_url
-from buzur.rag_scanner import scan_document
-from buzur.image_scanner import scan_image
-from buzur.suffix_scanner import scan_suffix
-from buzur.evasion_scanner import scan_evasion
-from buzur.prompt_defense_scanner import scan_fuzzy
-from buzur.supply_chain_scanner import scan_package_manifest, scan_skill_content, check_package_name
 from buzur.conditional_scanner import scan_conditional
 
-# Phase 1: Scan web content before passing to your LLM
-result = scan(web_search_result)
+# Most common pattern — scan before passing to your LLM
+result = scan(incoming_content)   # web result, tool output, RAG chunk, etc.
 if result.get('skipped'):
-    return  # Buzur blocked an injection — silent skip (default behavior)
+    return  # Safe silent block (recommended default for production)
 
-# Phase 1: Scan JSON API responses for injection in any field
+# Scan JSON responses (common with APIs)
 json_result = scan_json(api_response, scan)
-if not json_result['safe']:
-    print("Buzur blocked injection in field:", json_result['detections'][0]['field'])
+if not json_result.get('safe'):
+    print("Blocked in field:", json_result['detections'][0]['field'])
 
-# Phase 2: Check query trust tier
-tier = get_trust_tier(user_query)
-
-# Phase 3: Scan a URL with optional VirusTotal
-url_result = scan_url("https://example.com", options={'virustotal_api_key': os.environ.get('VIRUSTOTAL_API_KEY')})
-if url_result.get('skipped'):
-    print("Buzur blocked unsafe URL")
-
-# Phase 5: Scan standalone documents (markdown, README, API docs, JSON files)
-from buzur.rag_scanner import scan_document
-doc_result = scan_document(markdown_content, metadata={'source': 'readme.md'})
-if doc_result.get('skipped'):
-    print("Buzur blocked document injection")
-
-# Phase 7: Scan an image before passing to your LLM
-image_result = scan_image({
-    'alt': img_element['alt'],
-    'title': img_element['title'],
-    'filename': 'photo.jpg',
-    'surrounding': surrounding_text,
-    'buffer': image_buffer,  # optional: enables EXIF + QR scanning
-}, options={
-    'vision_endpoint': {'url': 'http://localhost:11434/api/generate', 'model': 'llava'}  # optional
-})
-if image_result.get('skipped'):
-    print("Buzur blocked image injection")
-
-# Phase 12: Scan for adversarial suffixes
-suffix_result = scan_suffix(user_input)
-if suffix_result.get('skipped'):
-    print("Buzur blocked adversarial suffix")
-
-# Phase 13: Evasion technique defense
-evasion_result = scan_evasion(user_input)
-if evasion_result['detections']:
-    print("Buzur detected evasion techniques:", evasion_result['detections'])
-
-# Phase 14: Fuzzy match and prompt leak defense
-fuzzy_result = scan_fuzzy(user_input)
-if fuzzy_result.get('skipped'):
-    print("Buzur blocked fuzzy injection or prompt leak")
-
-# Phase 20: Scan packages and skill manifests for supply chain threats
-manifest_result = scan_package_manifest(package_manifest)
-if manifest_result.get('skipped'):
-    print("Buzur blocked supply chain threat")
-
-# Phase 24: Scan for conditional and time-delayed injection
+# Phase 24 example — catches conditional/time-delayed attacks
 conditional_result = scan_conditional(user_input)
 if conditional_result.get('skipped'):
-    print("Buzur blocked conditional injection")
+    print("Conditional injection blocked")
 ```
 
 ## Handling Verdicts
 
-**Default behavior: Silent Skip**
+**Default behavior: Silent Skip** (`on_threat='skip'`)
 
-When Buzur detects a threat it silently blocks the content and returns `{'skipped': True}` — the content is discarded before it reaches your LLM, no exception is thrown, and execution continues. This is the recommended default for most agents.
+When Buzur detects a threat, it silently blocks the content and returns `{'skipped': True}`.  
+The dangerous content is discarded **before** it reaches your LLM, and your code continues safely. This is the recommended default for most production agents.
 
 ```python
-result = scan(web_content)
+result = scan(incoming_content)
 if result.get('skipped'):
-    # Content was blocked — move to next result
-    return
-# Safe to pass to your LLM
+    return  # Threat blocked — move on safely
+# Safe to use the content
 ```
 
 To override the default, pass an `on_threat` option:
