@@ -24,7 +24,7 @@ pip install buzur
 
 ## The Problem
 
-AI agents that pull in external data — web search results, tool outputs, RAG documents, user messages, or API responses — are highly vulnerable to **indirect prompt injection**.
+AI agents that interact with the world — web search results, tool outputs, RAG documents, user messages, or API responses — are highly vulnerable to **indirect prompt injection**.
 
 A single poisoned piece of content can hijack the agent's behavior, override its instructions, steal data, or turn it against its user. Traditional safeguards (system prompts, output filtering) come too late.
 
