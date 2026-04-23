@@ -35,7 +35,6 @@ This attack vector is ranked **#1 on the OWASP Top 10 for LLM Applications** and
 Scan before you enter. Buzur acts as a preemptive gatekeeper. It analyzes incoming content from any untrusted source and blocks dangerous payloads while allowing safe execution to continue.
 
 ```
-
 ## Basic Usage
 
 ```python
