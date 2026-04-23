@@ -1,7 +1,3 @@
-[![GitHub stars](https://img.shields.io/github/stars/SummSolutions/buzur-python?style=social)](https://github.com/SummSolutions/buzur-python)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://img.shields.io/pypi/v/buzur)](https://pypi.org/project/buzur/)
-
 # Buzur — AI Prompt Injection Defense Scanner (Python)
 
 **Scan before you enter.**
@@ -15,6 +11,10 @@ Works seamlessly with Python agent frameworks: **LangGraph**, **CrewAI**, **Auto
 **JavaScript version**: [github.com/SummSolutions/Buzur](https://github.com/SummSolutions/Buzur)
 
 ---
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
+![Phases](https://img.shields.io/badge/phases-24-success.svg
 
 ## Quick Start
 
