@@ -197,6 +197,8 @@ result = scan_image({
 
 **Recommended models:** llava, llava-phi3, moondream — any Ollama vision model works.
 
+**Without a vision endpoint:** Buzur still provides full metadata, QR, alt text, and filename protection. The vision layer adds depth but is never required.
+
 ## What Buzur Detects
 
 **Phase 1 — Pattern Scanner + ARIA/Accessibility Injection**
