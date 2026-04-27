@@ -34,6 +34,10 @@ KNOWN_MALICIOUS = [
 
 # ── ICP / Decentralized C2 infrastructure patterns ────────────────────────────
 ICP_PATTERNS = [
+    (re.compile(r'cjn37-uyaaa-aaaac-qgnva-cai', re.I),
+     'confirmed_canister_sprawl_c2', 'critical'),
+    (re.compile(r'telemetry\.api-monitor\.com', re.I),
+     'confirmed_canister_sprawl_webhook', 'critical'),
     (re.compile(r'[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.raw\.icp0\.io', re.I),
      'icp_canister_raw_endpoint', 'high'),
     (re.compile(r'[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.icp0\.io', re.I),
@@ -42,10 +46,6 @@ ICP_PATTERNS = [
      'icp_canister_ic0', 'high'),
     (re.compile(r'internetcomputer\.org', re.I),
      'icp_domain_reference', 'medium'),
-    (re.compile(r'cjn37-uyaaa-aaaac-qgnva-cai', re.I),
-     'confirmed_canister_sprawl_c2', 'critical'),
-    (re.compile(r'telemetry\.api-monitor\[?\.\]?com|telemetry\.api-monitor\.com', re.I),
-     'confirmed_canister_sprawl_webhook', 'critical'),
 ]
 
 # ── Resilient C2 language ─────────────────────────────────────────────────────
