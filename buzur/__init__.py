@@ -101,6 +101,24 @@ from buzur.disproportion_scanner import scan_disproportion
 # Phase 19 — Amplification / Mass-Send Attack Detection
 from buzur.amplification_scanner import scan_amplification
 
+# Phase 20 — Supply Chain & Skill Poisoning Scanner
+from buzur.supply_chain_scanner import check_package_name, scan_package_manifest, scan_skill_content
+
+# Phase 21 — Persistent Memory Poisoning Scanner
+from buzur.persistent_memory_scanner import scan_persistent_memory
+
+# Phase 22 — Inter-Agent Propagation Scanner
+from buzur.inter_agent_scanner import scan_inter_agent
+
+# Phase 23 — Tool Shadowing & Rug-Pull Detection
+from buzur.tool_shadow_scanner import scan_tool_shadow, record_tool_call, ToolBaselineStore, FileToolBaselineStore
+
+# Phase 24 — Conditional & Time-Delayed Injection Detection
+from buzur.conditional_scanner import scan_conditional
+
+# Phase 25 — Canister-Style Resilient Payload Scanner
+from buzur.canister_scanner import scan_canister_content, scan_install_script, check_known_malicious
+
 __version__ = "0.1.0"
 __all__ = [
     # Phase 1 + 2
@@ -144,4 +162,16 @@ __all__ = [
     "scan_disproportion",
     # Phase 19
     "scan_amplification",
+    # Phase 20
+    "check_package_name", "scan_package_manifest", "scan_skill_content",
+    # Phase 21
+    "scan_persistent_memory",
+    # Phase 22
+    "scan_inter_agent",
+    # Phase 23
+    "scan_tool_shadow", "record_tool_call", "ToolBaselineStore", "FileToolBaselineStore",
+    # Phase 24
+    "scan_conditional",
+    # Phase 25
+    "scan_canister_content", "scan_install_script", "check_known_malicious",
 ]
