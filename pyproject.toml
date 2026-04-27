@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "buzur"
-version = "1.1.0"
-description = "AI prompt injection defense scanner for agents. 24 phases covering HTML obfuscation, encoding attacks, semantic similarity, behavioral anomaly detection, multi-step attack chains, and more."
+version = "1.2.0"
+description = "AI prompt injection defense scanner for agents. 25 phases covering HTML obfuscation, encoding attacks, semantic similarity, behavioral anomaly detection, multi-step attack chains, and more."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [

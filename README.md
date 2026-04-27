@@ -2,7 +2,7 @@
 
 **Scan before you enter.**
 
-Buzur is an open-source **24-phase scanner** that protects AI agents and LLM applications from **indirect prompt injection attacks** (OWASP LLM Top 10 #1).
+Buzur is an open-source **25-phase scanner** that protects AI agents and LLM applications from **indirect prompt injection attacks** (OWASP LLM Top 10 #1).
 
 It inspects incoming content — web results, URLs, images (EXIF/QR/vision), tool outputs, RAG/memory data, MCP schemas, JSON APIs, adversarial suffixes, supply-chain artifacts, inter-agent messages, and more — **before** any data reaches your model. **Default behavior:** Silent Skip (`blocked`) threats while keeping your agent responsive. Comprehensive threat logging included.
 
@@ -14,7 +14,7 @@ Works seamlessly with Python agent frameworks: **LangGraph**, **CrewAI**, **Auto
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)]()
-[![Phases](https://img.shields.io/badge/phases-24-purple.svg)]()
+[![Phases](https://img.shields.io/badge/phases-25-purple.svg)]()
 
 ## Quick Start
 
@@ -320,9 +320,19 @@ result = scan_image({
 - Sleeper payloads, conditional identity switching
 - The hardest attack class to detect — each individual message looks clean
 
+**Phase 25 — Canister-Style Resilient Payload & Supply Chain Worm Detection**
+- ICP blockchain canister C2 detection: flags decentralized command-and-control infrastructure resistant to traditional takedowns
+- Confirmed CanisterSprawl IOCs: known malicious canister IDs and exfiltration webhook domains blocked by fingerprint
+- Resilient C2 language detection: "dead drop", "canister poll", "tamperproof command", "persist across restarts"
+- Credential harvesting pattern detection: npm/PyPI tokens, cloud credentials, LLM API keys (Anthropic, OpenAI, Ollama), SSH keys, browser stores, crypto wallets
+- Worm self-replication detection: version bump + republish sequences, cross-ecosystem PyPI propagation via Twine, .pth payload injection
+- Known malicious package version blocklist: confirmed CanisterSprawl/TeamPCP packages including pgserve, @automagik/genie, xinference, and more
+- Install script scanning: lifecycle scripts (postinstall/preinstall) scanned for worm behavior at install time
+- Built in direct response to CanisterSprawl (April 2026) — a self-propagating npm/PyPI worm using ICP blockchain canisters as censorship-resistant C2, targeting developer credentials including LLM API keys
+
 ## Proven Capabilities
 
-Verified by test suite — **257 tests, 0 failures** across all twenty-four phases.
+Verified by test suite — **291 tests, 0 failures** across all twenty-five phases.
 
 The JavaScript and Python implementations were cross-validated against each other — discrepancies caught and corrected in both. The result is two mutually verified implementations, not just a translation.
 
@@ -333,6 +343,8 @@ Buzur is a living library. As new threats emerge and new research surfaces, Buzu
 In February 2026, researchers from Harvard, MIT, Stanford, and CMU published *Agents of Chaos* (arXiv:2602.20021) — a live red-team study of 6 autonomous AI agents that found 10 vulnerabilities. Phases 15-19 were built directly in response to those findings.
 
 Phases 20-24 were built in response to the 2025-2026 surge in supply chain attacks, multi-agent deployments, and conditional injection research documented across OWASP, academic publications, and real-world incidents including the OpenClaw marketplace compromise and the Cline/ClawHavoc campaign.
+
+Phase 25 was built in direct response to CanisterSprawl (April 21-23, 2026), a self-propagating supply chain worm that simultaneously attacked npm, PyPI, and Docker Hub. The worm used ICP blockchain canisters as censorship-resistant C2 infrastructure, specifically targeted LLM API keys and AI agent credentials, and self-propagated by stealing publish tokens and republishing poisoned package versions. It was the first publicly documented worm to cross ecosystems (npm → PyPI) autonomously and to specifically target AI agent development environments.
 
 If you encounter an attack pattern Buzur doesn't catch, please open an issue or submit a pull request. Every new pattern strengthens the collective defense for every agent that uses it.
 

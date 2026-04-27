@@ -1,5 +1,5 @@
 # buzur_logger.py — Unified Threat Logger
-# Infrastructure (not a scanner phase) — logs detections from all 24 phases
+# Infrastructure (not a scanner phase) — logs detections from all 25 phases
 # to a single JSONL file with a consistent normalized shape.
 #
 # Each log entry:
