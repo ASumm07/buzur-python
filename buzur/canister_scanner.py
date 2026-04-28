@@ -33,17 +33,32 @@ KNOWN_MALICIOUS = [
 ]
 
 # ── ICP / Decentralized C2 infrastructure patterns ────────────────────────────
+# Confirmed specific IOCs first so category reflects the most precise match
 ICP_PATTERNS = [
+    # Confirmed CanisterSprawl canister IDs
     (re.compile(r'cjn37-uyaaa-aaaac-qgnva-cai', re.I),
      'confirmed_canister_sprawl_c2', 'critical'),
+    (re.compile(r'tdtqy-oyaaa-aaaae-af2dq-cai', re.I),
+     'confirmed_canister_sprawl_c2', 'critical'),
+    # Confirmed exfiltration webhook
     (re.compile(r'telemetry\.api-monitor\.com', re.I),
      'confirmed_canister_sprawl_webhook', 'critical'),
+    # Generic ICP canister ID format on raw endpoint
     (re.compile(r'[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.raw\.icp0\.io', re.I),
      'icp_canister_raw_endpoint', 'high'),
     (re.compile(r'[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.icp0\.io', re.I),
      'icp_canister_endpoint', 'high'),
     (re.compile(r'[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.ic0\.app', re.I),
      'icp_canister_ic0', 'high'),
+    # ICP dashboard canister path (recon / enumeration)
+    (re.compile(r'dashboard\.internetcomputer\.org/canister/', re.I),
+     'icp_dashboard_canister_path', 'medium'),
+    # Known C2 path patterns on ICP endpoints
+    (re.compile(r'icp0\.io.*/(?:drop|telemetry|poll|get_latest_link)', re.I),
+     'icp_c2_path', 'high'),
+    (re.compile(r'ic0\.app.*/(?:drop|telemetry|poll|get_latest_link)', re.I),
+     'icp_c2_path', 'high'),
+    # Generic ICP domain reference (low severity, needs combination to block)
     (re.compile(r'internetcomputer\.org', re.I),
      'icp_domain_reference', 'medium'),
 ]
@@ -64,6 +79,11 @@ C2_LANGUAGE_PATTERNS = [
      'c2_persistence_instruction', 'high'),
     (re.compile(r'fetch.{0,30}instruction.{0,30}(canister|icp|decentralized)', re.I),
      'c2_fetch_instructions', 'high'),
+    # CanisterSprawl-specific dynamic payload fetch function names
+    (re.compile(r'get_latest_link\s*\(', re.I),
+     'c2_canister_fetch_function', 'high'),
+    (re.compile(r'update_link\s*\(', re.I),
+     'c2_canister_fetch_function', 'high'),
     (re.compile(r'survive.{0,30}(takedown|block|removal)', re.I),
      'c2_takedown_resistance', 'medium'),
     (re.compile(r'blockchain.{0,30}(command|instruction|payload)', re.I),
@@ -72,27 +92,29 @@ C2_LANGUAGE_PATTERNS = [
 
 # ── Credential harvesting target patterns ─────────────────────────────────────
 CREDENTIAL_HARVEST_PATTERNS = [
-    (re.compile(r'process\.env\.NPM_TOKEN', re.I),         'credential_harvest_npm',            'critical'),
-    (re.compile(r'process\.env\.PYPI_TOKEN', re.I),        'credential_harvest_pypi',           'high'),
-    (re.compile(r'process\.env\.NODE_AUTH_TOKEN', re.I),   'credential_harvest_node_auth',      'high'),
-    (re.compile(r'process\.env\.AWS_ACCESS_KEY', re.I),    'credential_harvest_aws',            'high'),
-    (re.compile(r'process\.env\.AWS_SECRET', re.I),        'credential_harvest_aws',            'high'),
-    (re.compile(r'GOOGLE_APPLICATION_CREDENTIALS', re.I),  'credential_harvest_gcp',            'high'),
-    (re.compile(r'AZURE_CLIENT_SECRET', re.I),             'credential_harvest_azure',          'high'),
-    (re.compile(r'ANTHROPIC_API_KEY', re.I),               'credential_harvest_llm_anthropic',  'critical'),
-    (re.compile(r'OPENAI_API_KEY', re.I),                  'credential_harvest_llm_openai',     'critical'),
-    (re.compile(r'OLLAMA', re.I),                          'credential_harvest_llm_ollama',     'high'),
-    (re.compile(r'[\'\"~]\/\.npmrc[\'\"]?', re.I),         'credential_harvest_npmrc_file',     'high'),
-    (re.compile(r'~\/\.git-credentials', re.I),            'credential_harvest_git_creds',      'high'),
-    (re.compile(r'~\/\.netrc', re.I),                      'credential_harvest_netrc',          'high'),
-    (re.compile(r'~\/\.ssh\/id_rsa', re.I),                'credential_harvest_ssh_key',        'high'),
-    (re.compile(r'~\/\.env[\'\"` ]', re.I),                'credential_harvest_env_file',       'high'),
-    (re.compile(r'~\/\.kube\/config', re.I),               'credential_harvest_k8s',            'high'),
-    (re.compile(r'VAULT_TOKEN', re.I),                     'credential_harvest_vault',          'high'),
+    (re.compile(r'NPM_TOKEN', re.I),                    'credential_harvest_npm',            'critical'),
+    (re.compile(r'PYPI_TOKEN', re.I),                   'credential_harvest_pypi',           'high'),
+    (re.compile(r'NODE_AUTH_TOKEN', re.I),              'credential_harvest_node_auth',      'high'),
+    (re.compile(r'AWS_ACCESS_KEY', re.I),               'credential_harvest_aws',            'high'),
+    (re.compile(r'AWS_SECRET', re.I),                   'credential_harvest_aws',            'high'),
+    (re.compile(r'GOOGLE_APPLICATION_CREDENTIALS', re.I), 'credential_harvest_gcp',          'high'),
+    (re.compile(r'AZURE_CLIENT_SECRET', re.I),          'credential_harvest_azure',          'high'),
+    (re.compile(r'ANTHROPIC_API_KEY', re.I),            'credential_harvest_llm_anthropic',  'critical'),
+    (re.compile(r'OPENAI_API_KEY', re.I),               'credential_harvest_llm_openai',     'critical'),
+    (re.compile(r'GROK_API_KEY', re.I),                 'credential_harvest_llm_grok',       'critical'),
+    (re.compile(r'CLAUDE_API_KEY', re.I),               'credential_harvest_llm_claude',     'critical'),
+    (re.compile(r'OLLAMA', re.I),                       'credential_harvest_llm_ollama',     'high'),
+    (re.compile(r'[\'\"~]\/\.npmrc[\'\"]?', re.I),      'credential_harvest_npmrc_file',     'high'),
+    (re.compile(r'~\/\.git-credentials', re.I),         'credential_harvest_git_creds',      'high'),
+    (re.compile(r'~\/\.netrc', re.I),                   'credential_harvest_netrc',          'high'),
+    (re.compile(r'~\/\.ssh\/id_rsa', re.I),             'credential_harvest_ssh_key',        'high'),
+    (re.compile(r'~\/\.env[\'\"` ]', re.I),             'credential_harvest_env_file',       'high'),
+    (re.compile(r'~\/\.kube\/config', re.I),            'credential_harvest_k8s',            'high'),
+    (re.compile(r'VAULT_TOKEN', re.I),                  'credential_harvest_vault',          'high'),
     (re.compile(r'metamask|phantom.{0,20}extension', re.I), 'credential_harvest_crypto_wallet', 'medium'),
     (re.compile(r'solana.*keypair|ethereum.*keystore', re.I), 'credential_harvest_crypto_keys', 'medium'),
-    (re.compile(r'Chrome.{0,20}Login Data', re.I),         'credential_harvest_browser',        'high'),
-    (re.compile(r'chromium.{0,30}password', re.I),         'credential_harvest_browser',        'high'),
+    (re.compile(r'Chrome.{0,20}Login Data', re.I),      'credential_harvest_browser',        'high'),
+    (re.compile(r'chromium.{0,30}password', re.I),      'credential_harvest_browser',        'high'),
     (re.compile(r'os\.environ\.get\(.{0,30}(API_KEY|TOKEN|SECRET)', re.I), 'credential_harvest_python_env', 'high'),
     (re.compile(r'os\.getenv\(.{0,30}(API_KEY|TOKEN|SECRET)', re.I),       'credential_harvest_python_env', 'high'),
 ]
@@ -127,6 +149,20 @@ WORM_REPLICATION_PATTERNS = [
      'worm_setup_py_inject', 'critical'),
     (re.compile(r'pip install.{0,50}(inject|malicious)', re.I),
      'worm_pip_inject', 'high'),
+    # Polling loop — long sleep intervals are a CanisterSprawl behavioral fingerprint
+    (re.compile(r'time\.sleep\s*\(\s*[2-9]\d{3,}\s*\)', re.I),
+     'worm_polling_loop', 'high'),
+    (re.compile(r'sleep\s*\(\s*[2-9]\d{3,}\s*\)', re.I),
+     'worm_polling_loop', 'high'),
+    # Systemd persistence — user-level service creation
+    (re.compile(r'pgmon\.service', re.I),
+     'worm_systemd_persistence', 'critical'),
+    (re.compile(r'systemd.{0,20}user.{0,30}\.(service|timer)', re.I),
+     'worm_systemd_persistence', 'high'),
+    (re.compile(r'\.config/systemd/user/', re.I),
+     'worm_systemd_persistence', 'high'),
+    (re.compile(r'systemctl\s+--user\s+enable', re.I),
+     'worm_systemd_persistence', 'high'),
 ]
 
 # ── Exfiltration channel patterns ─────────────────────────────────────────────
