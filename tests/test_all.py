@@ -1444,7 +1444,7 @@ def test_known_malicious_empty_version():
     detection = check_known_malicious('pgserve', '')
     assert detection is None
 
-    def test_canister_content_second_confirmed_canister_blocked():
+def test_canister_content_second_confirmed_canister_blocked():
     result = scan_canister_content('payload fetched from tdtqy-oyaaa-aaaae-af2dq-cai.raw.icp0.io', {'on_threat': 'warn'})
     assert result['blocked'] == 1
 
