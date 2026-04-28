@@ -1443,3 +1443,95 @@ def test_known_malicious_empty_name():
 def test_known_malicious_empty_version():
     detection = check_known_malicious('pgserve', '')
     assert detection is None
+
+    def test_canister_content_second_confirmed_canister_blocked():
+    result = scan_canister_content('payload fetched from tdtqy-oyaaa-aaaae-af2dq-cai.raw.icp0.io', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_canister_content_second_confirmed_canister_category():
+    result = scan_canister_content('tdtqy-oyaaa-aaaae-af2dq-cai', {'on_threat': 'warn'})
+    assert result['category'] == 'confirmed_canister_sprawl_c2'
+
+def test_canister_content_icp_drop_path_blocked():
+    result = scan_canister_content('POST https://abc12-defgh-ijklm-nopqr-stu.icp0.io/drop', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_canister_content_icp_drop_path_category():
+    result = scan_canister_content('abc12-defgh-ijklm-nopqr-stu.icp0.io/drop', {'on_threat': 'warn'})
+    assert result['category'] == 'icp_c2_path'
+
+def test_canister_content_icp_poll_path_blocked():
+    result = scan_canister_content('poll at abc12-defgh-ijklm-nopqr-stu.icp0.io/poll for commands', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_canister_content_ic0_get_latest_link_blocked():
+    result = scan_canister_content('fetch from abc12-defgh-ijklm-nopqr-stu.ic0.app/get_latest_link', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_canister_content_dashboard_path_flagged():
+    result = scan_canister_content('check dashboard.internetcomputer.org/canister/abc123 for status', {'on_threat': 'warn'})
+    assert any(d['category'] == 'icp_dashboard_canister_path' for d in result['detections'])
+
+def test_canister_content_get_latest_link_function_blocked():
+    result = scan_canister_content('link = await get_latest_link(canister_id)', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_canister_content_get_latest_link_category():
+    result = scan_canister_content('get_latest_link(canister_id)', {'on_threat': 'warn'})
+    assert result['category'] == 'c2_canister_fetch_function'
+
+def test_canister_content_update_link_function_blocked():
+    result = scan_canister_content('update_link(canister_id, new_payload)', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_canister_content_update_link_category():
+    result = scan_canister_content('update_link(canister_id, payload)', {'on_threat': 'warn'})
+    assert result['category'] == 'c2_canister_fetch_function'
+
+def test_install_script_grok_api_key_blocked():
+    result = scan_install_script('exfil(os.environ.get("GROK_API_KEY"))', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_install_script_grok_api_key_category():
+    result = scan_install_script('steal GROK_API_KEY from environment', {'on_threat': 'warn'})
+    assert result['category'] == 'credential_harvest_llm_grok'
+
+def test_install_script_claude_api_key_blocked():
+    result = scan_install_script('send(os.environ.get("CLAUDE_API_KEY"))', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_install_script_claude_api_key_category():
+    result = scan_install_script('harvest CLAUDE_API_KEY from env', {'on_threat': 'warn'})
+    assert result['category'] == 'credential_harvest_llm_claude'
+
+def test_install_script_long_sleep_polling_blocked():
+    result = scan_install_script('while True:\n    fetch_payload()\n    time.sleep(3000000)', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_install_script_polling_loop_category():
+    result = scan_install_script('time.sleep(3000000)', {'on_threat': 'warn'})
+    assert result['category'] == 'worm_polling_loop'
+
+def test_install_script_bare_sleep_polling_blocked():
+    result = scan_install_script('sleep(3000000)', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_install_script_pgmon_service_blocked():
+    result = scan_install_script('cp pgmon.service ~/.config/systemd/user/', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_install_script_pgmon_service_category():
+    result = scan_install_script('install pgmon.service for persistence', {'on_threat': 'warn'})
+    assert result['category'] == 'worm_systemd_persistence'
+
+def test_install_script_systemctl_user_enable_blocked():
+    result = scan_install_script('systemctl --user enable myservice.service', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
+
+def test_install_script_systemctl_category():
+    result = scan_install_script('systemctl --user enable monitor.service', {'on_threat': 'warn'})
+    assert result['category'] == 'worm_systemd_persistence'
+
+def test_install_script_systemd_user_path_blocked():
+    result = scan_install_script('mkdir -p ~/.config/systemd/user && cp monitor.service ~/.config/systemd/user/', {'on_threat': 'warn'})
+    assert result['blocked'] == 1
