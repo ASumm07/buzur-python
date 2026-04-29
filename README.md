@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/PyPI-v1.2.0-blue.svg" alt="PyPI v1.2.0">
-  <img src="https://img.shields.io/badge/tests-291%20passing-brightgreen.svg" alt="291 tests passing">
+  <img src="https://img.shields.io/badge/tests-314%20passing-brightgreen.svg" alt="314 tests passing">
   <img src="https://img.shields.io/badge/phases-25-purple.svg" alt="25 phases">
   <img src="https://img.shields.io/badge/OWASP%20LLM-Top%2010%20%231-red.svg" alt="OWASP LLM Top 10 #1">
 </p>
@@ -233,7 +233,7 @@ Every phase was built in direct response to a real attack or published research.
 
 ## Proven
 
-**291 tests · 0 failures** across all 25 phases.
+**314 tests · 0 failures** across all 25 phases.
 
 The Python and JavaScript implementations were built in parallel and cross-validated throughout development. Discrepancies found in one were corrected in both. Two mutually verified implementations — not a translation.
 
