@@ -1,6 +1,7 @@
 # Buzur — Phase 17: Loop & Resource Exhaustion Induction Detection
 # Detects attempts to induce infinite loops, unbounded processes,
-# storage exhaustion, or recursive self-reference in AI agents.
+# storage exhaustion, recursive self-reference, or compute exhaustion
+# via crafted payload structure in AI agents.
 #
 # Note: resource amplification / broadcast threats are handled by
 # Phase 19 amplification_scanner, not this phase.
@@ -65,7 +66,31 @@ recursive_self_reference = [
     r"\bforward\b.{0,40}\bback\s+to\s+yourself\b",
 ]
 
-# resource_amplification intentionally excluded — handled by Phase 19 amplification_scanner
+# -- Compute Exhaustion via Crafted Payload (NEW) --
+# Distinct from loop_induction — these payloads carry no explicit loop instruction.
+# They exploit structural properties of the model or parser to force maximum
+# compute cost: deep nesting, recursive prompt structure, token-maximizing content.
+# Scope: instruction-detectable patterns only. Mathematical embedding attacks
+# and raw vector injection are out of scope for a text scanner — those require
+# defenses at the embedding model and vector store layers respectively.
+compute_exhaustion = [
+    # Deeply nested structure requests
+    r"\b(create|generate|build|produce|output)\s+(a\s+)?(deeply|heavily|extremely|maximally)\s+nested\s+(json|object|structure|array)\b",
+    r"\bnest(ed)?\s+(this|it|the\s+(object|array|structure|data))\s+(as\s+deep(ly)?|to\s+a\s+depth\s+of\s+\d{3,}|infinitely)\b",
+    r"\bdepth\s+of\s+\d{3,}\s+(levels?|layers?|nested)\b",
+    # Recursive prompt structure
+    r"\b(process|evaluate|analyze|summarize)\s+(the\s+)?(output|result|response)\s+of\s+(processing|evaluating|analyzing|summarizing)\s+(the\s+)?(output|result|response)\b",
+    r"\bfor\s+each\s+(result|item|output|response)[,\s]+(process|evaluate|analyze)\s+(each|every)\s+(result|item|output|response)\b",
+    r"\brecursively\s+(expand|process|evaluate|analyze|summarize|repeat)\s+(this|each|every|all)\b",
+    # Token-maximizing payload requests
+    r"\b(repeat|output|print|write|generate)\s+(the\s+)?(following|this|above)\s+(\d{4,}|thousands?\s+of|millions?\s+of)\s+times\b",
+    r"\b(fill|pad|expand)\s+(your\s+)?(entire\s+)?(context|context\s+window|output|response)\s+(with|using)\b",
+    r"\bmaximize\s+(your\s+)?(token|output|response|context)\s+(usage|length|count|window)\b",
+    r"\b(use|consume|fill)\s+(all|every|the\s+maximum)\s+(available\s+)?(tokens?|context|output\s+space)\b",
+    # Expensive reasoning triggers
+    r"\bthink\s+(through|about)\s+(every|all\s+possible|each\s+and\s+every)\s+(permutation|combination|possibility|scenario|edge\s+case)\b",
+    r"\b(enumerate|list|generate)\s+(all|every)\s+possible\s+(combination|permutation|variation|outcome)\s+(of|for)\b",
+]
 
 PATTERN_GROUPS = [
     (loop_induction,           'loop_induction'),
@@ -73,6 +98,7 @@ PATTERN_GROUPS = [
     (persistent_processes,     'persistent_process_spawn'),
     (storage_exhaustion,       'storage_exhaustion'),
     (recursive_self_reference, 'recursive_self_reference'),
+    (compute_exhaustion,       'compute_exhaustion'),
 ]
 
 REASONS = {
@@ -81,6 +107,7 @@ REASONS = {
     'persistent_process_spawn': 'Detected attempt to spawn a persistent background process',
     'storage_exhaustion':       'Detected attempt to exhaust storage with unbounded writes',
     'recursive_self_reference': 'Detected recursive self-reference — agent messaging itself',
+    'compute_exhaustion':       'Detected crafted payload designed to exhaust compute resources',
 }
 
 
@@ -116,6 +143,7 @@ def scan_loop(text: str, options: Optional[dict] = None) -> dict:
     }
 
     log_threat(17, 'loop_scanner', result, text[:200], logger)
+
     if on_threat == 'skip':
         return {'skipped': True, 'blocked': len(detections), 'reason': f'Buzur blocked: {top}'}
     if on_threat == 'throw':
