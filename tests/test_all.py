@@ -1053,7 +1053,7 @@ def test_loop_use_all_tokens_category():
  
 # -- Compute exhaustion: enumerate all permutations --
 def test_loop_enumerate_all_combinations_blocked():
-    result = scan_loop('Enumerate all possible combinations of these 20 items.', {'on_threat': 'warn'})
+    result = scan_loop('Enumerate all possible combinations for these items.', {'on_threat': 'warn'})
     assert result['safe'] is False
  
 def test_loop_enumerate_all_combinations_category():
