@@ -89,7 +89,7 @@ compute_exhaustion = [
     r"\b(use|consume|fill)\s+(all|every|the\s+maximum)\s+(available\s+)?(tokens?|context|output\s+space)\b",
     # Expensive reasoning triggers
     r"\bthink\s+(through|about)\s+(every|all\s+possible|each\s+and\s+every)\s+(permutation|combination|possibility|scenario|edge\s+case)\b",
-    r"\b(enumerate|list|generate)\s+(all|every)\s+possible\s+(combination|permutation|variation|outcome)\s+(of|for)\b",
+    r"\b(enumerate|list|generate)\s+(all|every)\s+possible\s+(combination|permutation|variation|outcome)s?(of|for)\b",
 ]
 
 PATTERN_GROUPS = [
