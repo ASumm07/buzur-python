@@ -322,12 +322,12 @@ def scan_batch(chunks: list, options: dict = None) -> dict:
 # -- Query Manipulation Patterns --
 QUERY_MANIPULATION = [
     # Source restriction
-    re.compile(r'\b(only|exclusively|solely)\s+(retrieve|fetch|search|use|return)\s+(from|in)\s+(this|the\s+following|one\s+specific)\s+(source|document|file|collection)\b', re.IGNORECASE),
+    re.compile(r'\b(only|exclusively|solely)\s+(retrieve|fetch|search|use|return)\s+(from|in)\s+.{0,30}(source|document|file|collection)\b', re.IGNORECASE),
     re.compile(r'\b(ignore|exclude|skip|omit)\s+(all\s+)?(other|remaining|additional)\s+(sources?|documents?|chunks?|results?)\b', re.IGNORECASE),
     re.compile(r'\b(do\s+not|don\'?t)\s+(retrieve|fetch|search|use|include)\s+(anything|content|results?)\s+(from|in)\s+(other|any\s+other|additional)\s+(sources?|documents?|collections?)\b', re.IGNORECASE),
     # Priority manipulation
-    re.compile(r'\b(always|must)\s+(rank|return|retrieve|prioritize|show)\s+(this|the\s+following|document\s+\w+)\s+(first|at\s+the\s+top|before\s+all\s+others?)\b', re.IGNORECASE),
-    re.compile(r'\b(boost|elevate|increase)\s+(the\s+)?(relevance|ranking|score|priority)\s+of\s+(this|the\s+following)\s+(document|source|chunk)\b', re.IGNORECASE),
+    re.compile(r'\b(always|must)\s+(rank|return|retrieve|prioritize|show)\s+.{0,30}\s+(first|at\s+the\s+top|before\s+all\s+others?)\b', re.IGNORECASE),
+    re.compile(r'\b(boost|elevate|increase)\s+(the\s+)?(relevance|ranking|score|priority)(\s+\w+)?\s+of\b', re.IGNORECASE),
     # Suppression
     re.compile(r'\b(suppress|hide|filter\s+out|remove)\s+(all\s+)?(results?|documents?|sources?|chunks?)\s+(that|which)\s+(mention|contain|include|discuss)\b', re.IGNORECASE),
     re.compile(r'\bnever\s+(retrieve|return|show|include)\s+(documents?|sources?|results?|chunks?)\s+(from|about|mentioning)\b', re.IGNORECASE),
@@ -339,8 +339,8 @@ QUERY_MANIPULATION = [
 # -- Embedding Poison Patterns --
 EMBEDDING_POISON = [
     # False semantic associations
-    re.compile(r'\b(always|permanently|forever)\s+(associate|link|connect|relate|map)\s+\w+\s+with\s+\w+\b', re.IGNORECASE),
-    re.compile(r'\bwhenever\s+(you\s+)?(see|encounter|process|read)\s+.{0,40}\b(think|treat|interpret|consider)\s+(it\s+as|as)\b', re.IGNORECASE),
+    re.compile(r'\b(always|permanently|forever)\s+(associate|link|connect|relate|map)\s+.{0,30}\s+with\b', re.IGNORECASE),
+    re.compile(r'\bwhenever\s+(you\s+)?(see|encounter|process|read)\s+.{0,60}(think|treat|interpret|consider)\b', re.IGNORECASE),
     re.compile(r'\b(from\s+now\s+on|henceforth|going\s+forward).{0,60}(means?|represents?|refers?\s+to|is\s+equivalent\s+to)\b', re.IGNORECASE),
     # Concept clustering attacks
     re.compile(r'\b(this\s+)?(content|document|text)\s+(is\s+)?(semantically\s+)?(identical|equivalent|similar)\s+to\s+(all\s+)?(queries?|searches?|requests?)\s+(about|regarding|for)\b', re.IGNORECASE),
